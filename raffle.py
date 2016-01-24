@@ -8,6 +8,10 @@ Choose a winner from a list. The list can be any list of objects. Raffle will at
 	the item selected just prior to the previous final selection. This process can be repeated until a suitable winner
 	is located.
 """
+from future import print
+
+from colorama import init
+init(autoreset=True)
 
 LOSER_DELAY = 1
 SCREEN_SIZE = 80 * 25 #TODO get actual screen size
@@ -20,7 +24,7 @@ def display_list(elegible_list, highlight_list=[]):
 	#TODO choose a font that will fill the screen
 	for i in elegible_list:
 		if i in highlight_list:
-			print(i) #TODO make item highlighted
+			print(Fore.RED + i) # make item highlighted
 		else:
 			print(i) # not highlighted
 
