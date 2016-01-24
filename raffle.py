@@ -31,7 +31,10 @@ def next_items_to_cull(canidate_list, canidates=5):
 	Returns a sublist from canidate list. The number of canidates can optionally be specified.
 	"""
 	culls = []
-	culls =+ random.choice(canidate_list) #TODO use a set so that duplicates cannot exist
+	if canidates > len(canidate_list):
+		canidates == len(canidate_list)
+	while len(culls) < canidates:
+                culls =+ random.choice(canidate_list) #TODO use a set so that duplicates cannot exist
 	return culls
 
 def monitor_user_input():
@@ -50,9 +53,9 @@ def monitor_user_input():
 def winnow_the_list(potential_losers, current_list):
 	"""
 	display the current list with potential losers highlighted. Remove one loser from the list and from the current
-	list and re-display until no potential losers remain.
+	list and re-display until only one potential loser remains.
 	"""
-	while len(potential_losers) > 0:
+	while len(potential_losers) > 1:
 		display_list(current_list, potential_losers)
 		loser = random.choice(potential_losers)
 		sleep(LOSER_DELAY)
