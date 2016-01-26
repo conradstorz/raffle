@@ -1,3 +1,8 @@
+# Python 2/3 compatibility boilerplate
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *
+
 """
 Choose a winner from a list. The list can be any list of objects. Raffle will attempt to display the objects on screen 
 	during the selection process so a list of strings is assumed. To make the process entertaining, the program
@@ -8,9 +13,11 @@ Choose a winner from a list. The list can be any list of objects. Raffle will at
 	the item selected just prior to the previous final selection. This process can be repeated until a suitable winner
 	is located.
 """
-from future import print
 
-from colorama import init
+import sys
+import time
+import random
+from colorama import init, Fore, Back, Style
 init(autoreset=True)
 
 LOSER_DELAY = 1
@@ -20,13 +27,18 @@ def display_list(elegible_list, highlight_list=[]):
 	"""
 	Displays given list and if specified highlights entries matching highlight_list.
 	"""
+	#clear terminal window
+	sys.stderr.write("\x1b[2J\x1b[H")
+
 	size_of_entrant_list = len(elegible_list)
 	#TODO choose a font that will fill the screen
+
 	for i in elegible_list:
 		if i in highlight_list:
 			print(Fore.RED + i) # make item highlighted
 		else:
 			print(i) # not highlighted
+
 
 def next_items_to_cull(canidate_list, canidates=5):
 	"""
@@ -35,9 +47,14 @@ def next_items_to_cull(canidate_list, canidates=5):
 	culls = []
 	if canidates > len(canidate_list):
 		canidates = len(canidate_list)
+
 	while len(culls) < canidates:
-                culls =+ random.choice(canidate_list) #TODO use a set so that duplicates cannot exist
+		result = random.choice(canidate_list) #TODO use a set so that duplicates cannot exist
+		string = result
+		culls.append(string)
+
 	return culls
+
 
 def monitor_user_input():
 	"""
@@ -47,11 +64,16 @@ def monitor_user_input():
 	'Backspace' is used to choose an alternate winner.
 	'A' is used to start the process from the beginning.
 	"""
+	return 'Y'
+
 	valid_input = ['Y', 'A', "Backspace"]
 	user_input = ''
+
 	while user_input not in valid_input:
 		user_input = get_char()
+
 	return user_input
+
 
 def winnow_the_list(potential_losers, current_list):
 	"""
@@ -59,13 +81,36 @@ def winnow_the_list(potential_losers, current_list):
 	display the current list with potential losers highlighted. Remove one loser from the list and from the current
 	list and re-display until only one potential loser remains.
 	"""
-	while len(potential_losers) > 1:
-		display_list(current_list, potential_losers)
-		runner_up = random.choice(potential_losers)
+	pl = potential_losers
+
+	while len(pl) > 1:
+
+		#display the list highlighting the potential losers.
+		display_list(current_list, pl)
+		time.sleep(LOSER_DELAY)
+
+		#pick one to be eliminated
+		loser = random.choice(pl)
+
 		# remove runner up from both lists
-		sleep(LOSER_DELAY)
-	
-	return (current_list, potential_losers, runner_up)
+
+		remainder = []
+		for l in potential_losers:
+			if l != loser:
+				remainder.append(l)
+		potential_losers = remainder
+
+		remainder = []
+		for l in current_list:
+			if l != loser:
+				remainder.append(l)
+		current_list = remainder
+
+		#only make one pass to remove one loser
+		pl = []
+
+	return (current_list, potential_losers, loser)
+
 	
 def read_json_file(filename):
 	"""
@@ -73,13 +118,19 @@ def read_json_file(filename):
 		folder from which the program is run. As file is processed the first field is used as the displayed
 		string. Additional fields are added to track the process of elimination.
 	"""
+	#TODO
+
 	
 def flash_list(entrants):
+	"""
+	Mainly for use to display the finalist in a dramatic way.
+	"""
 	for x in range(5):
 		display_list([])
-		sleep(loser_delay)
+		time.sleep(LOSER_DELAY)
 		display_list(entrants)
-		sleep(loser_delay)
+		time.sleep(LOSER_DELAY)
+
 
 def pick_a_winner(entrants):
 	"""
@@ -87,27 +138,48 @@ def pick_a_winner(entrants):
 	"""
 	runner_up = ''
 	while len(entrants) > 1:
+		time.sleep(LOSER_DELAY * 2)
 		display_list(entrants)
-		culls = next_items_to_cull(entrants)
+		culls = next_items_to_cull(entrants, 2)
 		results = winnow_the_list(culls, entrants)
 		entrants = results[0]
-		sleep(loser_delay * 2)
+		runner_up = results[2]
 		
 	# flash the winners name
 	flash_list(entrants)
+
 	return [entrants, runner_up]	
+
 	
 def run(entrants):
 	"""
 	primary functional loop
 	"""
+	#clear the terminal window
+	sys.stderr.write("\x1b[2J\x1b[H")
+
+	start_messages = ['Get ready....', 'Get set...........', 'Go!']
+	counter = 2
+
+	for line in start_messages:
+		time.sleep(LOSER_DELAY)
+		for x in range(counter):
+			print()
+		counter += counter
+		print(line)
+
+	time.sleep(LOSER_DELAY)
+
+	flash_list(entrants)
+
 	finalist_list = pick_a_winner(entrants)
+
 	finalist = finalist_list[0]
 	
 	are_we_done = ''
 	
 	while are_we_done != 'Y':
-		are_we_done = monitor_user_input():
+		are_we_done = monitor_user_input()
 			
 		if are_we_done == 'A':   #start over
 			finalist_list = pick_a_winner(entrants)
@@ -115,7 +187,4 @@ def run(entrants):
 		if are_we_done == 'backspace':   #back up one winner previous
 			finalist = finalist_list[1]
 			flash_list(finalist)
-		
-		
-		
 		
