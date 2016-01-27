@@ -23,7 +23,7 @@ init(autoreset=True)
 LOSER_DELAY = 1
 SCREEN_SIZE = 80 * 25 #TODO get actual screen size
 
-def display_list(elegible_list, highlight_list=[]):
+def display_list(elegible_list, highlight_list=[], highlight_color=Fore.RED):
 	"""
 	Displays given list and if specified highlights entries matching highlight_list.
 	"""
@@ -35,14 +35,14 @@ def display_list(elegible_list, highlight_list=[]):
 
 	for i in elegible_list:
 		if i in highlight_list:
-			print(Fore.RED + i) # make item highlighted
+			print(highlight_color + i) # make item highlighted
 		else:
 			print(i) # not highlighted
 
 
 def next_items_to_cull(canidate_list, canidates=5):
 	"""
-	Returns a sublist from canidate list. The number of canidates can optionally be specified.
+	Returns a sublist from canidate list. The size of sublist can optionally be specified.
 	"""
 	culls = []
 	if canidates > len(canidate_list):
@@ -77,17 +77,12 @@ def monitor_user_input():
 
 def winnow_the_list(potential_losers, current_list):
 	"""
-	returns a tuple of (the winnowed list, the finalist from this round, the runner up from this round).
-	display the current list with potential losers highlighted. Remove one loser from the list and from the current
-	list and re-display until only one potential loser remains.
+	returns a tuple of (the winnowed list, the winnowed p_l, the loser).
+	Remove one loser from the list and from the current list.
 	"""
 	pl = potential_losers
 
 	while len(pl) > 1:
-
-		#display the list highlighting the potential losers.
-		display_list(current_list, pl)
-		time.sleep(LOSER_DELAY)
 
 		#pick one to be eliminated
 		loser = random.choice(pl)
@@ -121,14 +116,14 @@ def read_json_file(filename):
 	#TODO
 
 	
-def flash_list(entrants):
+def flash_list(entrants, highlight_color=Fore.RED):
 	"""
 	Mainly for use to display the finalist in a dramatic way.
 	"""
 	for x in range(5):
-		display_list([])
+		display_list(entrants, Fore.GREEN)
 		time.sleep(LOSER_DELAY)
-		display_list(entrants)
+		display_list(entrants, Fore.YELLOW)
 		time.sleep(LOSER_DELAY)
 
 
@@ -141,10 +136,14 @@ def pick_a_winner(entrants):
 		time.sleep(LOSER_DELAY * 2)
 		display_list(entrants)
 		culls = next_items_to_cull(entrants, 2)
+		display_list(entrants, culls)
 		results = winnow_the_list(culls, entrants)
 		entrants = results[0]
-		runner_up = results[2]
+		culls = results[1]
+		display_list(entrants)
+		loser = results[2]
 		
+	runner_up = loser
 	# flash the winners name
 	flash_list(entrants)
 
